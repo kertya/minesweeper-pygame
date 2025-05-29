@@ -9,6 +9,8 @@ class Board:
         self.mine_count = mine_count
         self.cell_size = cell_size
         self.cells = []
+        self.game_over = False
+        self.font = pygame.font.SysFont('Arial', 48)  # Додано шрифт
         self.generate_board()
     
     def generate_board(self, safe_x=None, safe_y=None):
@@ -35,16 +37,11 @@ class Board:
     
     def count_adjacent_mines(self, x, y):
         count = 0
-        # Перевіряємо всіх 8 сусідів клітинки (x,y)
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
-                # Пропускаємо саму клітинку (dx=0, dy=0)
                 if dx == 0 and dy == 0:
                     continue
-                    
-                nx, ny = x + dx, y + dy  # Координати сусіда
-                
-                # Перевіряємо, чи сусід в межах поля
+                nx, ny = x + dx, y + dy
                 if 0 <= nx < self.width and 0 <= ny < self.height:
                     if self.cells[nx][ny].is_mine:
                         count += 1
@@ -54,10 +51,42 @@ class Board:
         for row in self.cells:
             for cell in row:
                 cell.draw(screen)
-    
+
+        # Малюємо повідомлення про програш
+        if self.game_over:
+            # Напівпрозорий чорний фон
+            overlay = pygame.Surface((self.width * self.cell_size, self.height * self.cell_size), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))  # Темніший фон для кращої видимості
+            screen.blit(overlay, (0, 0))
+            
+            # Текст "ГРА ЗАКІНЧЕНА"
+            text = self.font.render('ГРА ЗАКІНЧЕНА', True, (255, 50, 50))
+            text_rect = text.get_rect(center=(self.width * self.cell_size // 2, self.height * self.cell_size // 2))
+            screen.blit(text, text_rect)
+        
     def handle_click(self, pos, right_click=False):
+        if self.game_over:
+            return None  # Блокуємо всі кліки після програшу
+            
+        clicked = False
         for row in self.cells:
             for cell in row:
-                if cell.handle_click(pos, right_click):
-                    return True
-        return False
+                if cell.rect.collidepoint(pos):
+                    if right_click and not cell.is_open:
+                        cell.has_flag = not cell.has_flag
+                        return "flag"
+                    elif not right_click and not cell.is_open and not cell.has_flag:
+                        cell.is_open = True
+                        if cell.is_mine:
+                            self.game_over = True
+                            self.reveal_all_mines()
+                            return "game_over"
+                        return "open"
+        return None
+    
+    def reveal_all_mines(self):
+        """Показує всі міни на полі"""
+        for row in self.cells:
+            for cell in row:
+                if cell.is_mine:
+                    cell.is_open = True

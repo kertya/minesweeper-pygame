@@ -14,6 +14,8 @@ class Game:
         pygame.display.set_caption("Minesweeper")
         self.board = Board(width, height, mine_count, cell_size)
         self.running = True
+        self.game_over = False
+        self.font = pygame.font.SysFont('Arial', 32)
     
     def run(self):
         clock = pygame.time.Clock()
@@ -21,15 +23,27 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
+                elif not self.game_over and event.type == pygame.MOUSEBUTTONDOWN:
+                    result = None
                     if event.button == 1:  # Ліва кнопка миші
-                        self.board.handle_click(event.pos)
+                        esult = self.board.handle_click(event.pos)
+                        if result == "game_over":
+                            self.game_over = True
                     elif event.button == 3:  # Права кнопка миші
                         self.board.handle_click(event.pos, right_click=True)
             
             self.screen.fill((255, 255, 255))
             self.board.draw(self.screen)
+
+            if self.game_over:
+                self.draw_game_over()
             pygame.display.flip()
             clock.tick(60)
         
         pygame.quit()
+
+    def draw_game_over(self):
+        """Відображає повідомлення про програш"""
+        text = self.font.render('GAME OVER!', True, (255, 0, 0))
+        text_rect = text.get_rect(center=(self.screen.get_width()/2, self.screen.get_height()/2))
+        self.screen.blit(text, text_rect)

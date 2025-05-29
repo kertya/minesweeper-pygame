@@ -32,8 +32,8 @@ class Cell:
         if self.rect.collidepoint(pos):
             if right_click and not self.is_open:
                 self.has_flag = not self.has_flag
-                return True
-            elif not self.is_open and not self.has_flag:
+                return "flag"
+            elif not right_click and not self.is_open and not self.has_flag:
                 self.is_open = True
-                return True
-        return False
+                return "mine" if self.is_mine else "open"
+        return None
