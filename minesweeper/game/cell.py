@@ -1,12 +1,6 @@
 import pygame
 
 class Cell:
-    COLORS =  {
-        'closed': (200, 200, 200),
-        'opened': (150, 150, 150),
-        'text': (0, 0, 0),
-        'flag': (255, 0, 0)
-        }
     def __init__(self, x, y, size):
         self.x = x
         self.y = y
